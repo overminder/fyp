@@ -26,7 +26,7 @@ def test_module(module_name):
     mod.run(10).addCallback(pprint_all)
 
 if __name__ == '__main__':
-    all_mod = ['qq']
+    all_mod = ['qq', 'sohu']
     for mod in all_mod:
         test_module(mod)
 

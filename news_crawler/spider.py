@@ -2,8 +2,8 @@
 import urlparse # for urljoin
 import re # for url matching
 
-from twisted.internet import epollreactor
-epollreactor.install() # epoll is fast
+#from twisted.internet import epollreactor
+#epollreactor.install() # epoll is fast
 from twisted.internet import reactor, defer
 from twisted.web import client
 from twisted.python import util
