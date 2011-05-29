@@ -6,6 +6,7 @@ from twisted.internet import epollreactor
 epollreactor.install() # epoll is fast
 from twisted.internet import reactor, defer
 from twisted.web import client
+from twisted.python import util
 from enc_getpage import get_page
 
 from BeautifulSoup import BeautifulSoup
@@ -80,55 +81,48 @@ class PageSpider(object):
                 json.dump(self.visited.keys(), f, indent=4)
 
 
-def test():
-    TIMEOUT = 10 # should be enough
-    NUM_OF = 100 # pages are large!
-
-    #PAGE_ENC = 'gbk' # for qq
-    #start_page = 'http://news.qq.com'
-
-    PAGE_ENC = 'big5' # for hk
-    start_page = 'http://news.sina.com.hk'
-
-    spider = PageSpider(r'http://news.sina.com.hk', NUM_OF)
+def crawl_pages(start_page, url_matcher, encoding, timeout, max_num):
+    pages_d = defer.Deferred()
+    spider = PageSpider(url_matcher, max_num)
 
     def on_err(errobj):
         evalue = errobj.value
         if isinstance(evalue, tuple) and len(evalue) == 2:
             url, reason = evalue
             spider.fail_page(url)
-            #print 'page %s failed, reason: %s' % (url, reason)
-        else:
-            pass # unknown error
 
+    defer_fired = []
     def page_recvd((url, text)):
-        print 'page %s recvd' % url
         try:
             spider.add_page(url, text)
         except SpiderIsFull:
-            if reactor.running:
-                reactor.stop()
-                print 'done'
+            if not defer_fired:
+                defer_fired.append(None)
+                pages_d.callback(spider.visited)
             return
 
         urls = spider.give_all_jobs()
         print 'current page count: %s' % spider.page_count()
         for url in urls:
-            next_d = get_page(str(url), enc=PAGE_ENC, timeout=TIMEOUT)
+            next_d = get_page(str(url), enc=encoding, timeout=timeout)
             next_d.addCallback(page_recvd)
             next_d.addErrback(on_err)
 
-    # initialize the fetch
-    d = get_page(start_page, enc=PAGE_ENC, timeout=TIMEOUT, must_succ=True)
+    # initial crawl
+    d = get_page(start_page, enc=encoding, timeout=timeout, must_succ=True)
     d.addCallback(page_recvd)
     d.addErrback(on_err)
 
-    reactor.run()
-    print 'dumping...'
-    # after fetch NUM_OF pages, save them to a file.
-    spider.dump_to('spider_dump', True)
-    print 'OK'
+    return pages_d # defer that will callback with pages
+
 
 if __name__ == '__main__':
-    test()
+    crawl_pages(
+        start_page='http://news.sina.com.hk',
+        url_matcher=r'http://news.sina.com.hk',
+        encoding='big5',
+        timeout=10,
+        max_num=10
+    ).addCallback(util.println)
+    reactor.run()
 

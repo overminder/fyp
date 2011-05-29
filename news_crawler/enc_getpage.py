@@ -6,6 +6,8 @@ from twisted.web import client
 from twisted.python import util
 import traceback
 
+RETRY_THRESHOLD = 15
+
 def get_page(url, enc=None, timeout=5, retry_interval=1, must_succ=False):
     d = defer.Deferred()
     page_d = client.getPage(url, agent='Mozilla/5.0 (X11; Linux x86_64)\
@@ -17,8 +19,12 @@ def get_page(url, enc=None, timeout=5, retry_interval=1, must_succ=False):
     retry_interval *= 2
 
     def _retry(reason):
-        print 'fetching %s: retry after %s second, reason -- %s' % (
-                url, retry_interval, reason)
+        if retry_interval > RETRY_THRESHOLD:
+            _errback('too many retries')
+            return
+
+        #print 'fetching %s: retry after %s second, reason -- %s' % (
+        #        url, retry_interval, reason)
         reactor.callLater(retry_interval, lambda: get_page(
                 url, enc, timeout, retry_interval, must_succ).addCallback(
                         lambda cbval: d.callback(cbval)).addErrback(
