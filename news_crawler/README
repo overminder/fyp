@@ -1,0 +1,12 @@
+various modules to scrap news from qq, sina, sohu and other news sites.
+
+for new, the internal repr may differ, but the output must be in the given
+format:
+{
+  'url': (unicode)the-url-of-the-webpage,
+  'timestamp': (datetime)the-time-shown-in-the-webpage,
+  'title': (unicode),
+  'body': (unicode)
+}
+
+a sample module presenting all the must-have functions is located at sample.py
