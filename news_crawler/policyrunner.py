@@ -2,7 +2,7 @@
 import copy
 from spider import crawl_pages
 from datetime import datetime
-from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import BeautifulSoup, ICantBelieveItsBeautifulSoup as ISoup
 from soupselect import select as css_sel
 from twisted.internet import reactor, defer
 
@@ -40,7 +40,9 @@ def run(policy, **kw):
         body = css_sel(soup, policy.body_selector)
         if not body:
             raise ValueError, 'no body huh?'
-        body = ''.join(map(lambda tag: tag.text, body))
+        # XXX: we need better text flatten function
+        body = (''.join(map(lambda tag: tag.text, body))).strip()
+
 
         pub_time = css_sel(soup, policy.pubtime_selector)
         if not pub_time:

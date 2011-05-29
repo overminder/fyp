@@ -2,6 +2,7 @@
 test each modules by fetching several pages and pretty-print them out
 """
 
+import sys
 import traceback
 from twisted.internet import reactor
 import crawlpolicy
@@ -26,14 +27,18 @@ def test_module(module_name):
     mod = __import__(module_name)
     mod.run(10).addCallback(pprint_all)
 
-def test_policy(sitename):
+def test_policy(sitename, **kw):
     policyrunner.run(
-        crawlpolicy.all_policies[sitename]).addCallback(pprint_all)
+        crawlpolicy.all_policies[sitename], **kw).addCallback(pprint_all)
 
 if __name__ == '__main__':
-    sitenames = crawlpolicy.all_policies.keys()
+    if len(sys.argv) > 1: # testing given sites
+        sitenames = sys.argv[1:]
+    else: # all sites
+        sitenames = crawlpolicy.all_policies.keys()
+
     for sitename in sitenames:
-        test_policy(sitename)
+        test_policy(sitename, max_num=5)
     reactor.run()
 
 
