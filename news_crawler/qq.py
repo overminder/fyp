@@ -8,11 +8,14 @@ from BeautifulSoup import BeautifulSoup
 from soupselect import select as css_sel
 
 from twisted.internet import reactor
-from twisted.web import getPage
+from twisted.web.client import getPage
 
 
 target_url = 'http://www.qq.com'
 front_news = re.compile('http://news.qq.com/.+?\d+?\.htm')
+
+def get_news_url(base_url, cb):
+    getPage(base_url, 
 
 
 def get_url_from_frontpage(page_html, cb):
