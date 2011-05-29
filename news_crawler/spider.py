@@ -82,11 +82,14 @@ class PageSpider(object):
 
 def test():
     TIMEOUT = 10 # should be enough
-    NUM_OF = 1000
-    #PAGE_ENC = 'gbk'
-    PAGE_ENC = None
+    NUM_OF = 100 # pages are large!
+
+    #PAGE_ENC = 'gbk' # for qq
     #start_page = 'http://news.qq.com'
-    start_page = 'http://www.sina.com.hk'
+
+    PAGE_ENC = 'big5' # for hk
+    start_page = 'http://news.sina.com.hk'
+
     spider = PageSpider(r'http://news.sina.com.hk', NUM_OF)
 
     def on_err(errobj):
@@ -121,8 +124,10 @@ def test():
     d.addErrback(on_err)
 
     reactor.run()
-    spider.dump_to('spider_dump') # after fetch NUM_OF pages, save them to a
-                                  # file.
+    print 'dumping...'
+    # after fetch NUM_OF pages, save them to a file.
+    spider.dump_to('spider_dump', True)
+    print 'OK'
 
 if __name__ == '__main__':
     test()
