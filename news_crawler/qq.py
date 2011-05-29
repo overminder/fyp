@@ -1,10 +1,14 @@
 #coding: utf-8
 
 from datetime import datetime
-from BeautifulSoup import BeautifulSoup
-from soupselect import select as css_sel
 from urllib2 import urlopen
 import re
+
+from BeautifulSoup import BeautifulSoup
+from soupselect import select as css_sel
+
+from twisted.internet import reactor
+from twisted.web import getPage
 
 
 target_url = 'http://www.qq.com'
