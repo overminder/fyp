@@ -43,6 +43,13 @@ class PageSpider(object):
         self.url_matcher = re.compile(url_matcher)
         self.count = 0
 
+    def get_crawled(self):
+        res = {}
+        for k, v in self.visited.iteritems():
+            if v != 'Dummy':
+                res[k] = v
+        return res
+
     def give_job(self):
         url = self.to_visit.pop()
         self.visited[url] = 'Dummy'
@@ -98,7 +105,7 @@ def crawl_pages(start_page, url_matcher, encoding, timeout, max_num):
         except SpiderIsFull:
             if not defer_fired:
                 defer_fired.append(None)
-                pages_d.callback(spider.visited)
+                pages_d.callback(spider.get_crawled())
             return
 
         urls = spider.give_all_jobs()
@@ -123,6 +130,6 @@ if __name__ == '__main__':
         encoding='big5',
         timeout=10,
         max_num=10
-    ).addCallback(util.println)
+    ).addCallback(lambda v: (util.println(v), reactor.stop()))
     reactor.run()
 

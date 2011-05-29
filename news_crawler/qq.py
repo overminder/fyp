@@ -1,37 +1,32 @@
 #coding: utf-8
 
+from spider import crawl_pages
 from datetime import datetime
-from urllib2 import urlopen
-import re
-
 from BeautifulSoup import BeautifulSoup
 from soupselect import select as css_sel
-
-from twisted.internet import reactor
-from twisted.web.client import getPage
-
+from twisted.internet import reactor, defer
 
 target_url = 'http://www.qq.com'
-front_news = re.compile('http://news.qq.com/.+?\d+?\.htm')
-
-def get_news_url(base_url, cb):
-    getPage(base_url, 
-
-
-def get_url_from_frontpage(page_html, cb):
-    soup = BeautifulSoup(page_html)
-    hrefs = 
-    cb(front_news.findall(page_html))
-
-def fetch_page(url, cb, **kw):
-    print 'fetching %s' % url
-    cb(urlopen(url).read(), **kw)
+front_news = r'http://news.qq.com/.+?\d+?\.htm'
 
 def run(max_num=10):
+    """@returns: deferred object with a list of pages being found as
+    callback"""
+    d = defer.Deferred()
     founds = []
 
+    def _cb(pages):
+        """callback for crawl_pages()"""
+        for url, page in pages.iteritems():
+            try:
+                parse_article(page, url)
+            except ValueError, err:
+                print url, err
+                continue
+        d.callback(founds)
+
     def parse_article(page_got, page_url):
-        page_got = page_got.decode('gbk')
+        """analyze one particular article"""
         soup = BeautifulSoup(page_got)
 
         title = css_sel(soup, '#C-Main-Article-QQ .hd h1')
@@ -44,34 +39,31 @@ def run(max_num=10):
             raise ValueError, 'no body huh?'
         body = ''.join(map(lambda tag: tag.text, body))
 
-        timestamp = css_sel(soup, 'span.pubTime')
-        if not timestamp:
-            raise ValueError, 'no timestamp huh?'
-        timestamp = timestamp[0].text
+        pub_time = css_sel(soup, 'span.pubTime')
+        if not pub_time:
+            raise ValueError, 'no publish time huh?'
+        pub_time = pub_time[0].text
 
         founds.append({
             u'url': page_url,
             u'title': title,
             u'body': body,
             u'timestamp': datetime.now(),
-            u'time': timestamp
+            u'time': pub_time,
         })
 
+    crawl_pages(
+        start_page=target_url,
+        url_matcher=front_news,
+        encoding='gbk',
+        timeout=10,
+        max_num=10
+    ).addCallback(_cb)
 
-    def handle_urls(urls):
-        print 'got %d urls' % len(urls)
-        for i, url in enumerate(urls):
-            fetch_page(url, parse_article, page_url=url)
-            if i > max_num:
-                break
-
-    get_url_from_frontpage(urlopen(target_url).read(), handle_urls)
-    return founds
-
-
-def test():
-    print run()
+    return d
 
 if __name__ == '__main__':
-    test()
+    import test
+    test.test_module('qq')
+    reactor.run()
 
