@@ -2,6 +2,7 @@
 test each modules by fetching several pages and pretty-print them out
 """
 
+import json
 import sys
 import traceback
 from twisted.internet import reactor
@@ -16,16 +17,22 @@ def pretty_print(arti):
     for key in KEYS:
         val = unicode(arti[key])
         if len(val) > MAX_LEN and key in [u'title', u'body']:
-            print u'(%s => %s...)' % (key, val[:MAX_LEN])
+            print u'(%s => %s ### %s)' % (key, val[:MAX_LEN], val[-MAX_LEN:])
         else:
             print u'(%s => %s)' % (key, val)
 
 def pprint_all(founds):
     map(pretty_print, founds)
+    return founds
 
 def test_policy(sitename, **kw):
+    def dump_to_file(founds):
+        with open (sitename + '.out', 'w') as f:
+            json.dump(founds, f, indent=4)
     policyrunner.run(
-        crawlpolicy.all_policies[sitename], **kw).addCallback(pprint_all)
+        crawlpolicy.all_policies[sitename], **kw).addCallback(
+                pprint_all).addCallback(dump_to_file)
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1: # testing given sites

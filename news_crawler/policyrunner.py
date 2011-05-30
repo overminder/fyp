@@ -1,8 +1,7 @@
 
 import copy
-from hashlib import md5
 from spider import crawl_pages
-from datetime import datetime
+import time
 from BeautifulSoup import BeautifulSoup, ICantBelieveItsBeautifulSoup as ISoup
 from soupselect import select as css_sel
 from twisted.internet import reactor, defer
@@ -111,7 +110,7 @@ def run(policy, **kw):
             u'url': page_url,
             u'title': title,
             u'body': body,
-            u'timestamp': datetime.now(),
+            u'timestamp': time.time(), # floating epoch time
             u'time': pub_time,
         })
 
@@ -127,6 +126,7 @@ def run(policy, **kw):
     return d
 
 if __name__ == '__main__':
+    # testing parse engines
     engines = make_parse_engines()
     pq = engines['pyquery']
     soup = engines['BeautifulSoup']

@@ -8,7 +8,7 @@ class CrawlPolicy(object):
     max_num = 10
     timeout = 10
     title_selector = 'div#contentA h1'
-    body_selector = 'div#contentA #contentText'
+    body_selector = 'div#contentA #contentText p'
     pubtime_selector = 'div#contentA .sourceTime .r'
     #parse_engine = 'BeautifulSoup'
     parse_engine = 'pyquery'
