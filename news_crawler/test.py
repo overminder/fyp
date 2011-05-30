@@ -23,10 +23,6 @@ def pretty_print(arti):
 def pprint_all(founds):
     map(pretty_print, founds)
 
-def test_module(module_name):
-    mod = __import__(module_name)
-    mod.run(10).addCallback(pprint_all)
-
 def test_policy(sitename, **kw):
     policyrunner.run(
         crawlpolicy.all_policies[sitename], **kw).addCallback(pprint_all)
@@ -38,7 +34,9 @@ if __name__ == '__main__':
         sitenames = crawlpolicy.all_policies.keys()
 
     for sitename in sitenames:
+        print 'testing %s' % sitename
         test_policy(sitename, max_num=5)
+
     reactor.run()
 
 

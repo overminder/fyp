@@ -10,6 +10,8 @@ class CrawlPolicy(object):
     title_selector = 'div#contentA h1'
     body_selector = 'div#contentA #contentText'
     pubtime_selector = 'div#contentA .sourceTime .r'
+    #parse_engine = 'BeautifulSoup'
+    parse_engine = 'pyquery'
 
 def make_policy(**kw):
     res = CrawlPolicy()
