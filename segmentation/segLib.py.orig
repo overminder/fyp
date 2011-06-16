@@ -1,19 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import ctypes
-import atexit
-import os
-
-ictclas_lib = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'test.so'))
-ictclas_lib.do_init()
-atexit.register(ictclas_lib.do_finalize)
-
-do_paragraph = ictclas_lib.do_paragraph
-
-def segmentate(sentence):
-    return paragraph(ctypes.c_char_p(do_paragraph(sentence, len(sentence))).value)
-
-
+<<<<<<< HEAD
 tagLabel = [
     ["n",["nr","ns","nt","nz","nl","ng"]],
     ["t",["tg"]],
@@ -39,10 +26,23 @@ tagLabel = [
     ["w"]
 ]
 
+def segmentate(sentence):
+    import os
+    f = open("temp.txt","wb")
+    f.write(sentence)
+    f.close()
+    outfile = "temp_result.txt"
+    os.system("touch "+outfile)
+    os.system("./test temp.txt "+outfile)
+    f = open(outfile,'rb')
+    s = f.read()
+    os.system("rm temp.txt "+outfile)
+    return paragraph(s)
 
 class paragraph():
     def __init__(self,string):
         self.body = string #the body of the paragraph
+
         self.pairs = self.body.split(' ')
         self.nounCount = 0
         self.verbCount = 0
@@ -73,6 +73,25 @@ class paragraph():
                     counter = counter + 1
         return counter
 
+
+
+=======
+import ctypes
+import atexit
+
+h = ctypes.CDLL('./test.so')
+h.do_init()
+
+def segmentate(sentence):
+    return ctypes.c_char_p(h.do_paragraph(sentence, len(sentence))).value
+>>>>>>> 9e90c6799c14875fd6e7a332e424dcb827f47e6d
+
+atexit.register(h.do_finalize)
+
+<<<<<<< HEAD
+if __name__ == "__main__":
+=======
 if __name__ == '__main__':
-    print segmentate("哈哈你是张逸驰吗？").body
+>>>>>>> 9e90c6799c14875fd6e7a332e424dcb827f47e6d
+    print segmentate("哈哈你是张逸驰吗？")
 
