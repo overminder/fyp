@@ -4,11 +4,14 @@ import ctypes
 import atexit
 import os
 
+curr = os.getcwd()
+os.chdir(os.path.dirname(__file__))
 ictclas_lib = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'test.so'))
+
 ictclas_lib.do_init()
 atexit.register(ictclas_lib.do_finalize)
-
 do_paragraph = ictclas_lib.do_paragraph
+os.chdir(curr)
 
 def segmentate(sentence):
     return paragraph(ctypes.c_char_p(do_paragraph(sentence, len(sentence))).value)
