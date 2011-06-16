@@ -23,8 +23,8 @@ def get_page(url, enc=None, timeout=5, retry_interval=1, must_succ=False):
             _errback('too many retries')
             return
 
-        #print 'fetching %s: retry after %s second, reason -- %s' % (
-        #        url, retry_interval, reason)
+        print 'fetching %s: retry after %s second, reason -- %s' % (
+                url, retry_interval, reason)
         reactor.callLater(retry_interval, lambda: get_page(
                 url, enc, timeout, retry_interval, must_succ).addCallback(
                         lambda cbval: d.callback(cbval)).addErrback(
@@ -50,7 +50,7 @@ def get_page(url, enc=None, timeout=5, retry_interval=1, must_succ=False):
                 _retry(reason)
                 return
             eb_called.append(None) # make it true
-            #print 'error happens: %s' % reason
+            print 'error happens: %s' % reason
             d.errback((url, reason))
 
     timeout_handler = reactor.callLater(timeout, _errback, 'timeout')

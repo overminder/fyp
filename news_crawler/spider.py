@@ -1,6 +1,7 @@
 
 import urlparse # for urljoin
 import re # for url matching
+import sys # for printing...
 
 #from twisted.internet import epollreactor
 #epollreactor.install() # epoll is fast
@@ -9,22 +10,13 @@ from twisted.web import client
 from twisted.python import util
 from enc_getpage import get_page
 
-from BeautifulSoup import BeautifulSoup
-from soupselect import select as css_sel
 
-
-def select_hrefs(url_matcher, page_html, base_url):
+def select_hrefs(parser, url_matcher, page_html, base_url):
     """select hrefs from the given page text
     @returns: a list of hrefs"""
-    soup = BeautifulSoup(page_html)
-    a_tags = css_sel(soup, 'a')
-
+    urls = parser(page_html, 'a', href=True)
     res = []
-    for tag in a_tags:
-        try:
-            url = tag['href']
-        except:
-            continue # no href.
+    for url in urls:
         if not url.startswith('http'):
             res.append(urlparse.urljoin(base_url, url))
         else:
@@ -65,7 +57,7 @@ class PageSpider(object):
         self.count += 1
         self.visited[url] = page_text
 
-        new_hrefs = select_hrefs(self.url_matcher, page_text, url)
+        new_hrefs = select_hrefs(self.parser, self.url_matcher, page_text, url)
         for new_href in new_hrefs:
             if new_href not in self.visited:
                 self.to_visit.add(new_href)
@@ -88,9 +80,10 @@ class PageSpider(object):
                 json.dump(self.visited.keys(), f, indent=4)
 
 
-def crawl_pages(start_page, url_matcher, encoding, timeout, max_num):
+def crawl_pages(start_page, url_matcher, encoding, timeout, max_num, parser):
     pages_d = defer.Deferred()
     spider = PageSpider(url_matcher, max_num)
+    spider.parser = parser
 
     def on_err(errobj):
         evalue = errobj.value
@@ -109,7 +102,11 @@ def crawl_pages(start_page, url_matcher, encoding, timeout, max_num):
             return
 
         urls = spider.give_all_jobs()
-        print 'current page count: %s' % spider.page_count()
+
+        # draw a point
+        sys.stdout.write('.')
+        sys.stdout.flush()
+
         for url in urls:
             next_d = get_page(str(url), enc=encoding, timeout=timeout)
             next_d.addCallback(page_recvd)
@@ -124,12 +121,14 @@ def crawl_pages(start_page, url_matcher, encoding, timeout, max_num):
 
 
 if __name__ == '__main__':
+    from policyrunner import make_parse_engines
     crawl_pages(
-        start_page='http://news.sina.com.hk',
-        url_matcher=r'http://news.sina.com.hk',
-        encoding='big5',
+        start_page='http://www.groupon.cn',
+        url_matcher=r'.',
+        encoding='utf-8',
         timeout=10,
-        max_num=10
+        max_num=10,
+        parser=make_parse_engines()['pyquery']
     ).addCallback(lambda v: (util.println(v), reactor.stop()))
     reactor.run()
 
