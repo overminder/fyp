@@ -2,8 +2,6 @@
 import copy
 from spider import crawl_pages
 import time
-from BeautifulSoup import BeautifulSoup, ICantBelieveItsBeautifulSoup as ISoup
-from soupselect import select as css_sel
 from twisted.internet import reactor, defer
 
 def make_parse_engines():

@@ -10,9 +10,6 @@ from twisted.web import client
 from twisted.python import util
 from enc_getpage import get_page
 
-from BeautifulSoup import BeautifulSoup
-from soupselect import select as css_sel
-
 
 def select_hrefs(parser, url_matcher, page_html, base_url):
     """select hrefs from the given page text
@@ -126,9 +123,9 @@ def crawl_pages(start_page, url_matcher, encoding, timeout, max_num, parser):
 if __name__ == '__main__':
     from policyrunner import make_parse_engines
     crawl_pages(
-        start_page='http://news.sina.com.hk',
-        url_matcher=r'http://news.sina.com.hk',
-        encoding='big5',
+        start_page='http://www.groupon.cn',
+        url_matcher=r'.',
+        encoding='utf-8',
         timeout=10,
         max_num=10,
         parser=make_parse_engines()['pyquery']
