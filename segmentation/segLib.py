@@ -5,8 +5,9 @@ import atexit
 import os
 
 curr = os.getcwd()
-os.chdir(os.path.dirname(__file__))
-ictclas_lib = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'test.so'))
+filepath = os.path.dirname(os.path.abspath(__file__))
+os.chdir(filepath)
+ictclas_lib = ctypes.CDLL(os.path.join(filepath, 'test.so'))
 
 ictclas_lib.do_init()
 atexit.register(ictclas_lib.do_finalize)
