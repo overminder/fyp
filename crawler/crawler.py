@@ -4,7 +4,9 @@ import re
 import gzip
 import StringIO
 import time
+import random
 import MySQLdb
+from MySQLdb import OperationalError
 from BeautifulSoup import BeautifulSoup
 from soupselect import select
 import os, sys
@@ -18,7 +20,7 @@ from segmentation.segLib import segmentate
 """""""""""""""""""""""""""""""""""""""
          CONSTANT DECLARATION
 """""""""""""""""""""""""""""""""""""""
-MAXIMUMPAGES=2
+MAXIMUMPAGES=20
 DATABASEPATH='../database/'
 
 """""""""""""""""""""""""""""""""""""""
@@ -120,6 +122,7 @@ def processLink(cur):
         print "Time spent on processing page %s is %4.2f second(s)" % (newurl,t1)
         return 1
 
+    f = open('corpus.txt', 'ab')
     title_hash = str(title.__hash__())
     pubtime = select(soup,pubtime_selector)[0].text
     body = []
@@ -128,8 +131,13 @@ def processLink(cur):
             continue
         a = segmentate(item.text.encode('utf8'))
         body.append(a.body)
+        #save the article to a txt file
+        f.write(a.body)
 
-#save the article to the database
+    f.close()
+
+
+    #save the article to the database
     #first check whether there is a table called "dir_name"
     cur.execute("""SELECT * FROM `DateIndex` WHERE `Date` LIKE '%s'"""%dir_name)
     db_rst=cur.fetchone()
@@ -149,11 +157,14 @@ def processLink(cur):
             ('%s', '1');
         """%dir_name)
         #3.create a new table for this article 
-        cur.execute("""
-            CREATE TABLE  `articles`.`%s` (
-            `sentence` MEDIUMTEXT NOT NULL
-            ) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_bin;
-        """%title_hash)
+        try:
+            cur.execute("""
+                CREATE TABLE  `articles`.`%s` (
+                `sentence` MEDIUMTEXT NOT NULL
+                ) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_bin;
+            """%title_hash)
+        except OperationalError:
+            return 1
 
         for sentence in body:
             cur.execute("""
@@ -161,16 +172,58 @@ def processLink(cur):
                 ('%s');
             """%(title_hash,sentence))
 
-        print "%s\n%s\n%s\n%s\n"%(dir_name,title,title_hash,pubtime)
         #4.register the information of this artile in table "dir_name"
         cur.execute("""
             INSERT INTO `articles`.`%s` (`daily_number`, `title`, `title_hash`, `pub_time`) VALUES ('1', '%s', '%s', '%s');
         """%(dir_name,title.encode("ascii",'xmlcharrefreplace'),title_hash,pubtime.encode("ascii",'xmlcharrefreplace')))
-        #2.add an entry in table "DateIndex" as index to this new table
 
+    else:
+        if (db_rst[0] == dir_name):
+            #table with same "dir_name" found, then:
+            #1. get the "NumOfEntry" of this "dir_name" table in table DateIndex
+            cur_num = db_rst[1]
+            cur_num=cur_num+1
 
-    #else:
-        #table with same "dir_name" found
+            #2. update the "NumOfEntry" of this dir_name table in table DateIndex
+            cur.execute("""
+                UPDATE `articles`.`DateIndex` SET `NumOfEntry` = '%d' WHERE
+                `DateIndex`.`Date` = '%s';
+            """%(cur_num,dir_name))
+
+            #3.create a new table for this article 
+            try:
+                cur.execute("""
+                    CREATE TABLE  `articles`.`%s` (
+                    `sentence` MEDIUMTEXT NOT NULL
+                    ) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_bin;
+                """%title_hash)
+            except OperationalError:
+                return 1
+
+            for sentence in body:
+                cur.execute("""
+                    INSERT INTO `articles`.`%s` (`sentence`) VALUES
+                    ('%s');
+                """%(title_hash,sentence))
+            
+            #4.get number of articles in table "dir_name"
+            cur.execute("""
+                SELECT *  FROM `%s`
+            """%dir_name)
+            cur_num=c.rowcount
+            cur_num=cur_num+1
+            #5.register the information of this artile in table "dir_name"
+            cur.execute("""
+                INSERT INTO `articles`.`%s` (`daily_number`, `title`,
+                `title_hash`, `pub_time`) VALUES ('%d', '%s', '%s', '%s');
+            """%(dir_name,
+            cur_num,
+            title.encode("ascii",'xmlcharrefreplace'),
+            title_hash,
+            pubtime.encode("ascii",'xmlcharrefreplace')))
+        else:
+            print "Error: %s and %s are not match"%(db_rst[0],dir_name)
+
 
 
          
@@ -184,6 +237,8 @@ def processLink(cur):
 """""""""""""""""""""""""""""""""""""""
 if __name__ == '__main__':
     print "First Connect to Database.."
+    #"~/.my.cnf" is a mysql config file   
+    #the connected database must at least have table "DateIndex"
     db=MySQLdb.connect(read_default_file="~/.my.cnf")
     print "Database connection established."
     print "Crawl pages from %s" % startUrl
@@ -191,8 +246,9 @@ if __name__ == '__main__':
     flag=1
     while flag==1:
         flag = processLink(c)
+        random.shuffle(links)
 
-
+#following functions are used to decode xml replaced utf8 characters
 #def _callback(matches):
 #    id = matches.group(1)
 #    try:
