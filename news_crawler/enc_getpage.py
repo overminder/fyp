@@ -5,6 +5,8 @@ from twisted.internet import reactor, defer
 from twisted.web import client
 from twisted.python import util
 import traceback
+import StringIO
+import gzip
 
 RETRY_THRESHOLD = 15
 
@@ -35,12 +37,16 @@ def get_page(url, enc=None, timeout=5, retry_interval=1, must_succ=False):
             timeout_handler.cancel()
         else:
             return # already fired this defer
+        compressedstream = StringIO.StringIO(text)
+        gzipper = gzip.GzipFile(fileobj=compressedstream) 
+        data = gzipper.read()
         if enc:
             try:
-                text = text.decode(enc)
+                data = data.decode(enc)
             except UnicodeDecodeError: # fail to decode the page
                 _retry('decode err')
                 return
+        print data
         d.callback((url, text))
 
     eb_called = []
@@ -60,7 +66,7 @@ def get_page(url, enc=None, timeout=5, retry_interval=1, must_succ=False):
     return d
 
 def test():
-    get_page('http://news.qq.com', 'gbk', 10).addCallback(
+    get_page('http://news.qq.com', 'gb2312', 10).addCallback(
             lambda cbv: (util.println(cbv[0],
                                       cbv[1][1500:2000].encode('utf-8')),
                 reactor.stop())).addErrback(

@@ -1,5 +1,5 @@
 from datetime import datetime
-from hasher import hash_digest
+#from hasher import hash_digest
 import sys
 import urllib2
 import urlparse
@@ -42,14 +42,14 @@ def run(prev_found=None, max_num=100):
             content = select(soup,'div#artibody.blkContainerSblkCon')
             founds.append({
                 u'url' : url,
-                u'timestamp' 
+                u'timestamp':datetime.now() 
             })
 
 
         links = select(soup, 'a')['href']
         for link in links:
             if link.find("news.sina.com.cn") != -1:
-            get_content(url,num)
+                get_content(url,num)
     get_content(target_url, num)            
 
     #res_gen = ((hash_digest(d[u'url']), d) for d in founds)

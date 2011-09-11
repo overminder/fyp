@@ -3,6 +3,8 @@
 import ctypes
 import atexit
 import os
+from matplotlib import *
+from nltk import FreqDist
 
 curr = os.getcwd()
 filepath = os.path.dirname(os.path.abspath(__file__))
@@ -46,36 +48,31 @@ tagLabel = [
 
 class paragraph():
     def __init__(self,string):
-        self.body = string #the body of the paragraph
+        """
+           variable declaration 
+        """
+        #the body of the paragraph
+        self.body = string         
+
+        #the body of the paragrah as an array
         self.pairs = self.body.split(' ')
-        self.nounCount = 0
-        self.verbCount = 0
-        self.adjCount = 0
-        self.pronCount = 0
-        self.timeCount = 0
+
+        #split body to two parts and get frequency distribution
+        self.pair_word = []
+        self.pair_type = []
         for pair in self.pairs:
             if len(pair.split('/'))>=2:
-                word = pair.split('/')[0]
-                tag = pair.split('/')[1]
-                if tag[:1] == 'n':
-                    self.nounCount = self.nounCount + 1
-                elif tag[:1] == 'v':
-                    self.verbCount = self.verbCount + 1
-                elif tag[:1] == 'a':
-                    self.adjCount = self.adjCount + 1
-                elif tag[:1] == 'r':
-                    self.pronCount = self.pronCount + 1
-                elif tag[:1] == 't':
-                    self.timeCount = self.timeCount + 1
-    def getCount(self,outTag):
-        counter = 0
-        for pair in self.pairs:
-            if len(pair.split('/'))>=2:
-                word = pair.split('/')[0]
-                tag = pair.split('/')[1]
-                if tag == outTag:
-                    counter = counter + 1
-        return counter
+                self.pair_word.append(pair.split('/')[0])
+                self.pair_type.append(pair.split('/')[1])
+
+        self.word_fq = FreqDist(self.pair_word)
+        self.type_fq = FreqDist(self.pair_type)
+
+    def getTypeCount(self,outTag):
+        return self.type_fq[outTag]
+
+    def getWordCount(self,outTag):
+        return self.word_fq[outTag]
 
 if __name__ == '__main__':
     print segmentate("哈哈你是张逸驰吗？").body
