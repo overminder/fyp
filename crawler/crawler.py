@@ -20,7 +20,7 @@ from segmentation.segLib import segmentate
 """""""""""""""""""""""""""""""""""""""
          CONSTANT DECLARATION
 """""""""""""""""""""""""""""""""""""""
-MAXIMUMPAGES=20
+MAXIMUMPAGES=100
 DATABASEPATH='../database/'
 
 """""""""""""""""""""""""""""""""""""""
