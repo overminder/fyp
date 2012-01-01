@@ -1,0 +1,5 @@
+a framework for training set construction.
+
+dependencies:
+    sqlalchemy 0.7.4
+
