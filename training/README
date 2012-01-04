@@ -1,5 +1,6 @@
 a framework for training set construction.
 
 dependencies:
-    sqlalchemy 0.7.4
+    sqlalchemy 0.7.4 -- for database
+    py.test -- for testcases
 

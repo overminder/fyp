@@ -1,40 +1,36 @@
+from training import config
+config.get_database_path = lambda: ':memory:' # for testing
+
 from training.store import (Article, Paragraph, Sentence, ImportanceLabel,
-                            Session)
+                            Session, fetch_article, put_article)
 
 article_title = 'Hello, world'
-session = Session()
+sentence_1 = 'This is the first sentence.'
+sentence_2 = 'This is another sentence'
+sentence_3 = 'Here comes another sentence'
+
+# This is the article format.
+article_json = {
+    'title': article_title,
+    'paragraphs': [
+        [{'content': sentence_1,
+          'important': True },
+         {'content': sentence_2,
+          'important': False}],
+
+        [{'content': sentence_3,
+          'important': True}]
+    ]
+}
+
+def test_fetch_article_json():
+    populate_test_article()
+    check_test_article()
+
+def check_test_article():
+    article_json_got = fetch_article(1)
+    assert article_json_got == article_json
 
 def populate_test_article():
-    article = session.query(Article).filter_by(id=1).first()
-    if not article:
-        article = Article(article_title)
-        session.add(article)
-        session.commit()
-    return article
-
-def test_crud_article():
-    article = populate_test_article()
-    #
-    assert article.id == 1
-    assert article.title == article_title
-
-def test_crud_sentences():
-    article = populate_test_article()
-    if not article.paragraphs:
-        paragraph_1 = Paragraph()
-        paragraph_1.sentences = [Sentence('This is the first sentence.'),
-                                 Sentence('This is another sentence')]
-        paragraph_1.article = article
-        paragraph_2 = Paragraph()
-        paragraph_2.sentences = [Sentence('Here comes another sentence')]
-        paragraph_2.article = article
-        article.paragraphs = [paragraph_1, paragraph_2]
-        session.commit()
-    #
-    assert len(article.paragraphs) == 2 # 2 paragraphs in this article
-    assert len(session.query(Sentence)
-                      .join(Paragraph)
-                      .join(Article)
-                      .filter(Article.id == article.id)
-                      .all()) == 3 # 3 sentences in this article
+    put_article(article_json)
 

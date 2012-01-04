@@ -31,6 +31,19 @@ class Article(Base):
 
     def __repr__(self):
         return 'Article(%s)' % self.title
+
+    def dump_json(self):
+        return {
+            'title': self.title,
+            'paragraphs': [p.dump_json() for p in self.paragraphs]
+        }
+
+    @staticmethod
+    def load_json(json_data):
+        title, paragraphs = json_data['title'], json_data['paragraphs']
+        article = Article(title)
+        article.paragraphs = [Paragraph.load_json(p) for p in paragraphs]
+        return article
 #
 class Paragraph(Base):
     """ A paragraph belongs to an article. It contains many sentences.
@@ -43,6 +56,15 @@ class Paragraph(Base):
                                                       order_by=id))
     def __repr__(self):
         return 'Paragraph(article_id=%s)' % self.article_id
+
+    def dump_json(self):
+        return [s.dump_json() for s in self.sentences]
+
+    @staticmethod
+    def load_json(json_data):
+        paragraph = Paragraph()
+        paragraph.sentences = [Sentence.load_json(s) for s in json_data]
+        return paragraph
 #
 class Sentence(Base):
     """ A sentence belongs to a paragraph. It contains many labels.
@@ -64,6 +86,21 @@ class Sentence(Base):
 
     def __repr__(self):
         return 'Sentence(%s)' % self.content
+
+    def dump_json(self):
+        from store import important # XXX
+        return {
+            'content': self.content,
+            'important': self.importance_label is important
+        }
+
+    @staticmethod
+    def load_json(json_data):
+        from store import important, not_important # XXX
+        content, is_important = json_data['content'], json_data['important']
+        s = Sentence(content)
+        s.importance_label = important if is_important else not_important
+        return s
 #
 class ImportanceLabel(Base):
     """ ImportanceLabel's value is either 0 or 1.
