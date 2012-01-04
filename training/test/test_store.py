@@ -1,8 +1,7 @@
 from training import config
 config.get_database_path = lambda: ':memory:' # for testing
 
-from training.store import (Article, Paragraph, Sentence, ImportanceLabel,
-                            Session, fetch_article, put_article)
+from training.store import fetch_article, put_article
 
 article_title = 'Hello, world'
 sentence_1 = 'This is the first sentence.'

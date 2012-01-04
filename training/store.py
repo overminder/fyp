@@ -11,9 +11,7 @@ engine, Session = create_engine_and_session(get_database_path())
 session = Session() # since we are in single-threaded environment, session
                     # could be shared between modules.
 
-# --------------------------------------------------------------------------
-
-important, not_important = None, None
+# interfaces: `fetch_article' and `put_article'
 
 def fetch_article(article_id):
     """ Fetch an article from the database.
@@ -29,6 +27,10 @@ def put_article(article_json):
     article = Article.load_json(article_json)
     session.add(article)
     session.commit()
+
+# --------------------------------------------------------------------------
+
+important, not_important = None, None
 
 def populate_labels():
     global important, not_important
