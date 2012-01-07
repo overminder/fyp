@@ -2,7 +2,7 @@ import ast
 import operator
 import itertools
 from source import parse as parse_source
-from astanalysis import (extract_import_node, extract_attr_node,
+from astanalysis import (extract_import_node, extract_attr_or_name_node,
                          ModuleContext)
 
 def get_import_names(module_node):
@@ -24,7 +24,7 @@ def get_module_accessors(module_node):
     import_nodes = extract_import_node(module_node)
     module_context = ModuleContext(import_nodes)
     #
-    attr_nodes = extract_attr_node(module_node)
+    attr_nodes = extract_attr_or_name_node(module_node)
     accessors = itertools.ifilter(bool, itertools.imap(module_context.access,
                                                        attr_nodes))
     return itertools.imap(operator.attrgetter('path'), accessors)

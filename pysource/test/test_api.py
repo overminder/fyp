@@ -1,4 +1,3 @@
-import py
 from pysource.api import parse_source, get_import_names, get_module_accessors
 
 def test_get_import_names():
@@ -25,14 +24,31 @@ def test_extract_attr():
     assert 'sys.stdin' in module_accessors
     assert 'sys.stdin.write' in module_accessors
 
-@py.test.fail('this is a bug that will be fixed soon.')
 def test_extract_attr_with_from():
     code = '''
     from sys import stdin
     stdin.write('hello, world!\\n')
+
+    from os.path import dirname
+    print dirname(__file__)
     '''
     module_node = parse_source(code)
     module_accessors = list(get_module_accessors(module_node))
     #
     assert 'sys.stdin.write' in module_accessors
+    assert 'os.path.dirname' in module_accessors
+
+def test_extract_attr_with_from_and_as():
+    code = '''
+    from sys import stdin as mystdin
+    mystdin.write('hello, world!\\n')
+
+    from os.path import dirname as mydirname
+    print mydirname(__file__)
+    '''
+    module_node = parse_source(code)
+    module_accessors = list(get_module_accessors(module_node))
+    #
+    assert 'sys.stdin.write' in module_accessors
+    assert 'os.path.dirname' in module_accessors
 

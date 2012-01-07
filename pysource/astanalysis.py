@@ -6,6 +6,12 @@ class ModuleAccessor(object):
         self.path = path
         self.is_base = is_base
 
+    def __repr__(self):
+        if self.is_base:
+            return '<Module %s>' % self.path
+        else:
+            return '<Attr %s>' % self.path
+
     def get(self, name):
         return ModuleAccessor('%s.%s' % (self.path, name), is_base=False)
 
@@ -27,6 +33,8 @@ class ModuleContext(object):
         return self.get_by_chain(name.split('.'))
 
     def get_by_chain(self, attr_chain):
+        """ [str] -> Either ModuleAccessor KeyError
+        """
         ns = self.ns
         for attr in attr_chain:
             ns = ns.get(attr)
@@ -35,6 +43,8 @@ class ModuleContext(object):
         return ns
 
     def access(self, attr_node):
+        """ ast.Node -> Maybe ModuleAccessor
+        """
         attr_chain = _extract_attr_chain(attr_node)
         if attr_chain is None:
             return None
@@ -48,10 +58,10 @@ def extract_import_node(node):
     """
     return _extract_node(node, _is_import_node)
 
-def extract_attr_node(node):
+def extract_attr_or_name_node(node):
     """ :: ast.Node -> [ast.Node]
     """
-    return _extract_node(node, _is_attr_node)
+    return _extract_node(node, _is_attr_or_name_node)
 
 # ---------------------------------------------------------------------------
 
@@ -71,7 +81,7 @@ def _extract_attr_chain(node):
 
 
 def _populate_namespace(key, value, output=None):
-    """ (str, a) -> dict str a
+    """ (str, a, Maybe (dict str a)) -> dict str a
 
         Dots in key are treated as namespace separator.
     """
@@ -95,7 +105,7 @@ def _extract_import_alias_pairs(node):
     else:
         assert isinstance(node, ast.ImportFrom)
         alias_pairs = itertools.imap(_extract_alias_pair, node.names)
-        return (('%s.%s' % (node.module, name), modulepath)
+        return ((name, '%s.%s' %  (node.module, modulepath))
                 for (name, modulepath) in alias_pairs)
 
 def _extract_alias_pair(alias):
@@ -118,8 +128,8 @@ def _is_import_node(node):
     """
     return isinstance(node, (ast.Import, ast.ImportFrom))
 
-def _is_attr_node(node):
+def _is_attr_or_name_node(node):
     """ :: ast.Node -> bool
     """
-    return isinstance(node, ast.Attribute)
+    return isinstance(node, (ast.Attribute, ast.Name))
 

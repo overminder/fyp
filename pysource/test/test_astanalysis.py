@@ -1,7 +1,8 @@
 import operator
 import itertools
 from pysource.source import parse
-from pysource.astanalysis import (extract_import_node, extract_attr_node,
+from pysource.astanalysis import (extract_import_node,
+                                  extract_attr_or_name_node,
                                   ModuleContext)
 
 def test_extract_import():
@@ -29,11 +30,26 @@ def test_extract_attr():
     import_nodes = extract_import_node(module_node)
     module_context = ModuleContext(import_nodes)
    
-    attr_nodes = extract_attr_node(module_node)
+    attr_nodes = extract_attr_or_name_node(module_node)
     accessors = itertools.ifilter(bool, itertools.imap(module_context.access,
                                                        attr_nodes))
-    return itertools.imap(operator.attrgetter('path'), accessors)
-    sys_stdin = ['sys', 'stdin', 'write']
-    assert '.'.join(wanted) in module_accessors
-    assert '.'.join(wanted[:-1]) in module_accessors
+    module_accessors = list(itertools.imap(operator.attrgetter('path'),
+                                           accessors))
+    assert 'sys.stdin' in module_accessors
+    assert 'sys.stdin.write' in module_accessors
+
+def test_module_context():
+    code = '''
+    from sys import stdin
+    from os.path import dirname
+    from a.b.c.d import e
+    '''
+    module_node = parse(code)
+    import_nodes = extract_import_node(module_node)
+    module_context = ModuleContext(import_nodes)
+
+    assert 'stdin' in module_context.ns
+    assert 'dirname' in module_context.ns
+    assert 'e' in module_context.ns
+    assert module_context.ns['e'].path == 'a.b.c.d.e'
 

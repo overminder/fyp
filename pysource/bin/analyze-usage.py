@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import os
 import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.normpath(os.path.join(HERE, '../../')))
 #
-from pysource.api import get_import_names
+from pysource.api import parse_source, get_import_names, get_module_accessors
 
 def main(argv):
     try:
@@ -13,9 +15,11 @@ def main(argv):
         return 1
     #
     with open(filename) as f:
-        import_names = get_import_names(f.read())
-    for name in import_names:
-        print name
+        module_node = parse_source(f.read())
+    import_names = list(get_import_names(module_node))
+    accessors = list(get_module_accessors(module_node))
+    print import_names
+    print accessors
 
 if __name__ == '__main__':
     main(sys.argv)
