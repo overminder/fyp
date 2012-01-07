@@ -1,3 +1,4 @@
+import py
 from pysource.api import parse_source, get_import_names, get_module_accessors
 
 def test_get_import_names():
@@ -10,7 +11,8 @@ def test_get_import_names():
     module_node = parse_source(code)
     import_names = list(get_import_names(module_node))
     #
-    assert sorted(import_names) == sorted(['foo.bar', 'modulename.funcname'])
+    assert 'foo.bar' in import_names
+    assert 'modulename.funcname' in import_names
 
 def test_extract_attr():
     code = '''
@@ -20,7 +22,17 @@ def test_extract_attr():
     module_node = parse_source(code)
     module_accessors = list(get_module_accessors(module_node))
     #
-    wanted = ['sys', 'stdin', 'write']
-    assert wanted in module_accessors
-    assert wanted[:-1] in module_accessors
+    assert 'sys.stdin' in module_accessors
+    assert 'sys.stdin.write' in module_accessors
+
+@py.test.fail('this is a bug that will be fixed soon.')
+def test_extract_attr_with_from():
+    code = '''
+    from sys import stdin
+    stdin.write('hello, world!\\n')
+    '''
+    module_node = parse_source(code)
+    module_accessors = list(get_module_accessors(module_node))
+    #
+    assert 'sys.stdin.write' in module_accessors
 
