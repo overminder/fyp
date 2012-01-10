@@ -1,9 +1,16 @@
 import ast
 import operator
 import itertools
-from source import parse as parse_source
+from source import parse as _parse
 from astanalysis import (extract_import_node, extract_attr_or_name_node,
                          ModuleContext)
+
+def parse_source(codestring, failfast=True):
+    """ :: (str, bool) -> ast.Node
+
+        Returns an ast.Node object. Usually it's an module.
+    """
+    return _parse(codestring, failfast)
 
 def get_import_names(module_node):
     """ :: ast.Node -> [str]
