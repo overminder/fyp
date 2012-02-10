@@ -1,4 +1,4 @@
-import py
+import pytest
 from pysource.graph.node import PackageNode
 
 def test_resolve_pip():
@@ -7,7 +7,7 @@ def test_resolve_pip():
     node.resolve_deps()
     assert len(node.deps) > 3 # pip should have many dependencies
 
-@py.test.skip('also too long to run...')
+@pytest.mark.skipif('1')
 def test_resolve_flask():
     node = PackageNode('flask')
     assert not node.is_installed()

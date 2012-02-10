@@ -1,4 +1,4 @@
-import py
+import pytest
 from pysource.graph import installer
 
 def try_import(module_name, expect_failure=True):
@@ -13,7 +13,7 @@ def try_import(module_name, expect_failure=True):
     elif not succ and not expect_failure:
         assert 0, '%s should be installed' % module_name
 
-@py.test.skip('too long to run...')
+@pytest.mark.skipif('1')
 def test_install_flask():
     module = 'flask'
     try:

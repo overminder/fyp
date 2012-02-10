@@ -1,3 +1,4 @@
+import pytest
 from pysource.graph.installer import uninstall_package
 from pysource.graph.builder import GraphBuilder
 
@@ -9,6 +10,7 @@ def test_build_pip_deps():
     assert len(builder.nodes) == 10
     # Now builder.nodes contains 10 PackageNodes.
 
+@pytest.mark.skipif('1')
 def test_build_flask_deps():
     try:
         # flask is a (hopefully) undownloaded module.
