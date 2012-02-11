@@ -7,11 +7,11 @@ from pysource.graph.viewer import Viewer
 
 def test_build_pip_deps():
     # pip is a downloaded module.
-    builder = GraphBuilder('django', max_num_nodes=10)
+    builder = GraphBuilder('pip', max_num_nodes=10)
     builder.build()
     v = Viewer(builder)
 
-    path = 'foo.png'
+    path = 'sample-graph.png'
     v.output_image(path)
     assert os.path.isfile(path)
     os.system('xdg-open %s' % path)
