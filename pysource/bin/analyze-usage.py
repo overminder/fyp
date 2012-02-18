@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
-import os
-import sys
-HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.normpath(os.path.join(HERE, '../../')))
-#
+import path_fix
 from pysource.api import parse_source, get_import_names, get_module_accessors
 
 def main(argv):
