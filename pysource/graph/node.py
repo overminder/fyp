@@ -4,18 +4,15 @@ from weakref import WeakSet
 from pysource.graph.installer import install_package, uninstall_package
 from pysource.api import parse_source, get_import_names
 
-class ModuleDepNode(object):
+class PackageNode(object):
     def __init__(self, name):
-        self.name = name # :: str
-        self.deps = None # :: Set str, or None if it is a builtin node.
-        self.importers = WeakSet() # :: WeakSet str
-
-    def add_importer(self, node):
-        self.importers.add(node)
+        self.name = name # :: str, the toplevel package name
+        self.deps = None # :: Set str, or None for a builtin module/package
+        self.importer = None # :: str, full-qualified name of its importer
 
     def __repr__(self):
-        return '#<ModuleDepNode %s deps=%r importers=%r>' % (
-                self.name, self.deps, list(self.importers))
+        return '#<PackageNode %s deps=%r importer=%r>' % (
+                self.name, self.deps, self.importer)
 
     def is_installed(self):
         try:
@@ -24,14 +21,15 @@ class ModuleDepNode(object):
             return False
         return True
 
-    def try_relative_import(self):
-        if not self.importers:
+    def try_relative_import(self, builder):
+        if not self.importer:
             return False
-        a_importer = iter(self.importers).next()
-        real_import_path = '%s.%s' % (a_importer.name, self.name)
+        real_import_path = '%s.%s' % (self.importer, self.name)
         try:
             __import__(real_import_path)
             self.name = real_import_path
+            builder.add_relative_import(self.importer.split('.')[0],
+                    real_import_path)
             return True
         except ImportError:
             return False
@@ -67,6 +65,8 @@ class ModuleDepNode(object):
         # For each source file, parse and analyze its content.
         # This way we can find what module it will import.
         for source_path in sources:
+            importer_path = os.path.relpath(source_path, root_path)
+            importer = 
             for dep in self._resolve_file_deps(source_path):
                 deps.add(dep)
         return deps
@@ -97,7 +97,7 @@ class ModuleDepNode(object):
         except SyntaxError:
             raise SyntaxError('failed to parse source file `%s\'' % filename)
         for import_name in get_import_names(parsed):
-            yield (import_name.split('.')[0], filename) # *.py -> *
+            yield import_name.split('.')[0] # *.py -> *
 
 # Helper functions
 def is_builtin_module(module):

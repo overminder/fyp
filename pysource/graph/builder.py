@@ -1,7 +1,7 @@
 """ Non-incremental graph builder.
 """
 from pysource.log import get_logger
-from pysource.graph.node import ModuleDepNode
+from pysource.graph.node import PackageNode
 from pysource.graph.installer import FailedToInstall
 from collections import OrderedDict
 
@@ -12,11 +12,11 @@ class GraphBuilder(object):
 
     def __init__(self, root_package_name, max_num_nodes):
         self.nodes = {} # maps package name to package node
-        self.roots = [ModuleDepNode(root_package_name)]
+        self.roots = [PackageNode(root_package_name)]
         self.max_num_nodes = max_num_nodes
 
     def add_root(self, name):
-        self.roots.append(ModuleDepNode(name))
+        self.roots.append(PackageNode(name))
 
     def freeze(self):
         """ Freeze the graph to make it easier to do vector space model
@@ -60,7 +60,7 @@ class GraphBuilder(object):
                             package_name not in failures and
                             package_name not in nodes_to_expand and
                             package_name != node.name):
-                        child_node = ModuleDepNode(package_name)
+                        child_node = PackageNode(package_name)
                         child_node.add_importer(importer)
                         nodes_to_expand[package_name] = child_node
 
