@@ -4,6 +4,7 @@
 from collections import deque
 
 from pysource.graph.model import Package
+from pysource.graph.space import FileExecutionError
 from pysource.log import get_logger
 
 logger = get_logger('pysource.graph.builder')
@@ -21,21 +22,29 @@ class GraphBuilder(object):
 
     def build(self):
         packages_to_be_resolved = deque(self.root_packages)
-        finished_packages = {}
+        self.finished_packages = {}
+        self.failed_packages = {}
 
         while (packages_to_be_resolved and
-                len(finished_packages) < self.max_num_package):
+                len(self.finished_packages) < self.max_num_package):
             package = packages_to_be_resolved.popleft()
-            package.import_toplevel()
+            try:
+                package.import_toplevel()
+            except (ImportError, FileExecutionError):
+                self.failed_packages[package.name] = package
+                logger.warn('package %s failed to import.', package.name)
+                continue
             package.locate_submodules()
             package.resolve_dependencies()
         
-            finished_packages[package.name] = package
+            self.finished_packages[package.name] = package
             for dep_name in package.dependencies:
-                if dep_name not in finished_packages:
+                if (dep_name not in self.finished_packages and
+                        dep_name not in self.failed_packages):
                     packages_to_be_resolved.append(
                             Package(self.space, dep_name))
-            logger.info('package %s resolved.', package.name)
+                    #logger.warn('package %s added.', dep_name)
+            logger.info('package %s resolved. (%d/%d)', package.name,
+                    len(self.finished_packages), self.max_num_package)
         #
-        self.finished_packages = finished_packages
 
