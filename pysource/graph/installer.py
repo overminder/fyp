@@ -1,15 +1,7 @@
-import pdb
 from pysource.log import get_logger
+from pysource.graph.cache import known_failures, shall_fail
 
 logger = get_logger('pysource.graph.installer')
-
-known_failures = set(['_winreg', 'msilib', 'win32con', 'win32api',
-        '_subprocess', 'msvcrt', 'EasyDialogs', 'rourl2path', '_scproxy',
-        '_sha', '_sha512', '_md5', '_sha256', 'win32evtlog',
-        'win32evtlogutil', '_xmlrpclib'])
-
-def shall_fail(name):
-    return name in known_failures or name.startswith('win32')
 
 class FailedToInstall(Exception):
     def __init__(self, reason, package_name):
@@ -48,7 +40,13 @@ def pip_install(package_name):
     except InstallationError as e:
         logger.warn('installation of %s failed. reason: %s' % (
             package_name, str(e)))
+        known_failures.add(package_name)
         raise FailedToInstall(str(e), package_name)
+    #except KeyboardInterrupt:
+    #    logger.warn('installation of %s failed. reason: %s' % (
+    #        package_name, 'cancelled'))
+        # known_failures.add(package_name)
+    #    raise FailedToInstall('cancelled', package_name)
 
 def pip_uninstall(package_name):
     opt, args = pip_uninstaller.parser.parse_args([package_name, '-y'])

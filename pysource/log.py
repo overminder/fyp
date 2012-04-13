@@ -1,5 +1,5 @@
 # module pysource.log
 
-from logging import basicConfig, INFO, WARN, getLogger as get_logger
+from logging import basicConfig, DEBUG, INFO, WARN, getLogger as get_logger
 
-basicConfig(level=WARN)
+basicConfig(level=INFO)
