@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="/static/style.css" type="text/css" media="screen" charset="utf-8">
+
+    <title>Summarization for {{ q.title }}</title>
+</head>
+<body>
+    <div id="summary">
+        <h1>{{ q.title }}</h1>
+    </div>
+
+    <div id="info">
+
+
+    {% autoescape off %}
+
+    {% for ans in sorted_answers %}
+        <hr />
+        {{ ans.body }}
+    {% endfor %}
+
+    {% endautoescape %}
+
+    </div>
+</body>
+</html>
+
